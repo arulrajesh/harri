@@ -1,3 +1,4 @@
+import click
 from locators import Locator
 from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException, StaleElementReferenceException, TimeoutException
 from selenium.webdriver.common.by import By
@@ -231,15 +232,17 @@ class HarriSite:
                 pass
 
     def hbrowse(self,fpath):
-        logger.info(f'Attempting to browse to {fpath}' )
-        try:  # click the "Browse" popup window
-            element = self.driver.find_element_by_xpath(Locator.oBrowse_button)
-            element.click()
-        finally:
-            pass
-        time.sleep(2)
-        subprocess.Popen(f'''fileupload/fileupload.exe "{fpath}"''')
-        time.sleep(1)
+        logger.info(f'Attempting to browse to {fpath}')
+        while True:
+            try:  # click the "Browse" popup window
+                element = self.driver.find_element_by_xpath(Locator.oBrowse_button)
+                element.click()
+                break
+            except ElementClickInterceptedException:
+                self.click_ignore()
+            time.sleep(2)
+            subprocess.Popen(f'''fileupload/fileupload.exe "{fpath}"''')
+            time.sleep(1)
 
     def final_upload(self,upload=True):
         try:  # click the Upload button in the popup window
