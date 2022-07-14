@@ -33,5 +33,7 @@ class Locator:
     oTop_title_in_right_location_bar = "//*[@id='top']/div[2]/h-brands-list/div/div/div[1]"
     oFirst_result_of_everyblock = "//h-brands-list//div[@class='locations-list-wrapper'][2]//div[@class='location-map-block']/following::div[1]"
     oLoadingtable ="//forecasts-historical-data-component//div//div//h4[contains(.,'Loading')]"
+    oNext_like_got_it = "//*[@id='top']/div/nav/div/div/div[4]/a[contains(.,'Next')]"
     #an alternate way to calculate first search result of everyblock
     #oFirst_result_of_everyblock ="//h-brands-list//div[@class='locations-list-wrapper'][2]/div/div[2]"
+    pops = [oIgnore_button, oGot_it, oNext_like_got_it]

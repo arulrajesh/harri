@@ -8,6 +8,9 @@ from selenium.common.exceptions import NoSuchElementException, ElementClickInter
 from harri_site import HarriSite
 import logging
 from selenium.webdriver.chrome.options import Options
+import threading
+import time
+from locators import Locator
 options=Options()
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
 ###################################################
@@ -34,6 +37,16 @@ logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
 #########################################################################
 
+def pop_up_killer(driver):
+    while True:
+        time.sleep(1)
+        for i in Locator.pops:
+            try:
+                s= driver.find_element_by_xpath(i)
+                s.click()
+            except:
+                pass
+
 @click.group()
 def cli():
     pass
@@ -57,6 +70,8 @@ def createlist(user):
     driver.get(URL)
     wait = WebDriverWait(driver, 60)
     driver.implicitly_wait(1)
+    x = threading.Thread(target=pop_up_killer,args=(driver,),daemon=True)
+    x.start()
     FiHa = HarriSite(wait,driver)
     #u ,p = user
     u  = U
@@ -87,6 +102,8 @@ def upload(user):
     driver.get(URL)
     wait = WebDriverWait(driver, 60)
     driver.implicitly_wait(1)
+    x = threading.Thread(target=pop_up_killer,args=(driver,),daemon=True)
+    x.start()
     FiHa = HarriSite(wait,driver)
     #u ,p = user
     u  = U
