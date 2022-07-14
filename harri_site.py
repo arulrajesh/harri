@@ -1,8 +1,8 @@
-from cmath import log
 from locators import Locator
-from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException,StaleElementReferenceException, TimeoutException
+from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException, StaleElementReferenceException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 import os
 import subprocess
@@ -25,7 +25,6 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler) 
 logger.addHandler(file_handler)
 logger.addHandler(file_handler2)
-logger.debug(f'Harrisite Initialized')
 #########################################################################
 
 class HarriSite:
@@ -171,6 +170,7 @@ class HarriSite:
 
     def hsearch(self,clientID, clickit=True):
         #clickcit is set to false when this function is used to create the list.csv file.
+        logger.info(f'Processing "{clientID}" file')
         try:  # click somewhere on the page
             element_s = self.wait.until(EC.element_to_be_clickable(
                 (By.XPATH,Locator.oHistorical_data_below_team_live)))
@@ -206,6 +206,7 @@ class HarriSite:
             companies = ""
             for x in elems:
                 companies += x.get_attribute('innerText')+'|'
+            logger.info(f"found ({len(elems)}) for {clientID} :['{companies[:-1]}']")
             return companies[:-1], len(elems)
 
     def click_upload(self):
@@ -258,21 +259,41 @@ class HarriSite:
             pass
 
     def status_write(self):
-        status = "NA"        
-        try:  # Locate the presence of the table after upload and find the status in the last row
-            # //*[@id="upload_data"]/div/div/ng-transclude/upload-historical-data-component/div/div[2]/div[2]/table
-            result = self.wait.until(AnyEc(EC.visibility_of_element_located((By.XPATH, Locator.oStatus_table)), EC.visibility_of_element_located(
-                (By.XPATH, Locator.oNo_uploaded_files))))
-            if result.get_attribute('innerText') != 'No uploaded files':
-                rows = self.driver.find_elements_by_xpath(Locator.oRows_in_status_table)
-                status = self.driver.find_element(
-                    By.XPATH, f"//*[@id='upload_data']/div/div/ng-transclude/upload-historical-data-component/div/div[2]/div[2]/table/tbody/tr[{len(rows)}]").get_attribute("innerText")
-            else:
-                status = 'No Uploaded Files'
-        finally:
-            print(status)
-            return status
-    
+        status = "NA"
+        ctr=1
+        self.driver.implicitly_wait(1)
+        while True:
+            logger.info(f'attempt:{ctr}')        
+            try:  # Locate the presence of the table after upload and find the status in the last row
+                # //*[@id="upload_data"]/div/div/ng-transclude/upload-historical-data-component/div/div[2]/div[2]/table
+                logger.debug('waiting for upload table to show up')
+                ctr+=1
+                result = WebDriverWait(self.driver,3).until(AnyEc(EC.visibility_of_element_located((By.XPATH, Locator.oStatus_table)), EC.visibility_of_element_located(
+                (By.XPATH, Locator.oNo_uploaded_files)),EC.element_to_be_clickable((By.XPATH,Locator.oLoadingtable))))
+                innerT = result.get_attribute('innerText') 
+                if 'Loading' in innerT:
+                    if ctr>10:
+                        print(ctr)
+                        status = 'Took too long'
+                        return status
+                elif innerT == 'No uploaded files':
+                    logger.debug('could not find the table')
+                    status = 'No Uploaded Files'
+                    return status 
+                else:
+                    logger.debug('Found the table')
+                    rows = self.driver.find_elements_by_xpath(Locator.oRows_in_status_table)
+                    status = self.driver.find_element(
+                        By.XPATH, f"//*[@id='upload_data']/div/div/ng-transclude/upload-historical-data-component/div/div[2]/div[2]/table/tbody/tr[{len(rows)}]").get_attribute("innerText")
+                    return status                    
+            except:
+                logger.debug('There was an exception, probably timeout.')
+                self.click_uploadhistoricaldata()
+                pass
+            finally:
+                logger.info(status)
+                print(status)
+        
     def validate_search(self):
         '''Have to definitely write a help file for this'''
         df = pd.DataFrame(os.listdir('historicals'), columns=['historicals'])
@@ -311,14 +332,15 @@ class HarriSite:
         df['#results'] = nlist
         df['clientid'] = search_terms
         df['upload'] = uploadss
-        df.sort_values(by=['upload'], inplace=True)
+        df.sort_values(by=['upload','#results'], inplace=True)
         df.to_csv('list.csv', index=False)
         logger.info('Successfully exported "list.csv" file. Please check file for any ZZZZZZs. Correct and set upload to 1.')
 
     # make sure you are on the dashboard page
     def get_list_of_sites(self):
+        logger.info('Running get list of sites')
         self.driver.get('http://harristaging.com/dashboard')
-        element = self.driver.find_element_by_xpath(Locator.oMap_icon_on_dashboard) #map icon
+        element = self.Webdriverwait(self.driver,3).until(EC.element_to_be_clickable((By.XPATH,Locator.oMap_icon_on_dashboard))) #map icon
         element.click()
         self.wait.until(EC.element_to_be_clickable(
             (By.XPATH,Locator.oTop_title_in_right_location_bar)))
@@ -329,14 +351,14 @@ class HarriSite:
             var ele = arguments[0];
             ele.parentNode.removeChild(ele);
             """, ele)
-        elems = self.river.find_elements(
+        elems = self.driver.find_elements(
             By.XPATH, "//h-brands-list//div[@class='locations-list-wrapper'][2]//div[contains(@class,'brand-name')]")
-        print(len(elems))
+        logger.info(f'{len(elems)} sites found in brand list, excluding first in each group')
         sites = []
         for ele in elems:
-            print(f"{ele.get_attribute('innerText')}")
+            logger.info(f"{ele.get_attribute('innerText')}")
             sites.extend(f"{ele.get_attribute('innerText')}".split('\n'))
-        print(sites)
+        return sites
 
 class AnyEc:
 
