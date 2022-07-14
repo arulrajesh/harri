@@ -212,13 +212,10 @@ class HarriSite:
 
     def click_upload(self):
         logger.info(f'Attempting to click the Upload buttton below brands list' )
+        self.driver.implicitly_wait(1)
         while True:
             try:
-                element = self.wait.until(AnyEc(EC.element_to_be_clickable((By.XPATH, Locator.oUpload_button_below_brands_list)),EC.element_to_be_clickable((By.XPATH,Locator.oIgnore_button))))
-                if element.get_attribute('innerText') == 'Ignore':
-                    element.click()
-                self.click_uploadhistoricaldata()
-                element = self.wait.until(EC.element_to_be_clickable((By.XPATH,Locator.oUpload_button_below_brands_list)))
+                element = self.driver.find_element_by_xpath(Locator.oUpload_button_below_brands_list)
                 element.click()
                 logger.info('Success: started upload interface')
                 break
@@ -228,6 +225,8 @@ class HarriSite:
             except StaleElementReferenceException:
                 logger.info("Stale element exception while clicking upload button below brands lits")    
                 self.click_uploadhistoricaldata()
+            except ElementClickInterceptedException:
+                self.click_ignore()
             finally:
                 pass
 
@@ -237,29 +236,29 @@ class HarriSite:
             try:  # click the "Browse" popup window
                 element = self.driver.find_element_by_xpath(Locator.oBrowse_button)
                 element.click()
+                time.sleep(2)
+                subprocess.Popen(f'''fileupload/fileupload.exe "{fpath}"''')
+                time.sleep(1)
                 break
             except ElementClickInterceptedException:
                 self.click_ignore()
-            time.sleep(2)
-            subprocess.Popen(f'''fileupload/fileupload.exe "{fpath}"''')
-            time.sleep(1)
 
     def final_upload(self,upload=True):
-        try:  # click the Upload button in the popup window
-            if upload:
-                element = self.driver.find_element_by_xpath(Locator.oUpload_button_final)
-                msx = f'File selected, clicking upload'
-            else:
-                element = self.driver.find_element_by_xpath(Locator.oCancel_button_on_upload_modal)
-                msx = f'File selected, however clicking "Cancel" as we are in test mode.'
-            element.click()
-            logger.info(msx)
-            self.wait.until(EC.invisibility_of_element(element))
-        except ElementClickInterceptedException:
-            self.click_ignore()
-            element.click()
-        finally:
-            pass
+        while True:
+            try:  # click the Upload button in the popup window
+                if upload:
+                    element = self.driver.find_element_by_xpath(Locator.oUpload_button_final)
+                    msx = f'File selected, clicking upload'
+                else:
+                    element = self.driver.find_element_by_xpath(Locator.oCancel_button_on_upload_modal)
+                    msx = f'File selected, however clicking "Cancel" as we are in test mode.'
+                element.click()
+                logger.info(msx)
+                self.wait.until(EC.invisibility_of_element(element))
+                break
+            except ElementClickInterceptedException:
+                self.click_ignore()
+
 
     def status_write(self):
         status = "NA"
