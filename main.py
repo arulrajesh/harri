@@ -42,7 +42,7 @@ def pop_up_killer(driver):
         time.sleep(1)
         for i in Locator.pops:
             try:
-                s= driver.find_element_by_xpath(i)
+                s= driver.find_element('xpath',i)
                 s.click()
             except:
                 pass

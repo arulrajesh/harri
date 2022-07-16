@@ -37,7 +37,7 @@ class HarriSite:
         try:
             lf = self.wait.until(EC.element_to_be_clickable((By.NAME,Locator.oUsername_field)))
             pf = self.wait.until(EC.element_to_be_clickable((By.NAME,Locator.oPassword_field)))
-            logn = self.driver.find_element_by_xpath(Locator.oLogin)
+            logn = self.driver.find_element("xpath",Locator.oLogin)
             lf.send_keys(uemail)
             pf.send_keys(upass)
             logger.debug(f'Login Attempted')
@@ -50,7 +50,7 @@ class HarriSite:
 
     def got_it(self):
         try:
-            element = self.driver.find_element_by_xpath(Locator.oGot_it)
+            element = self.driver.find_element('xpath',Locator.oGot_it)
             element.click()
         except Exception as e:
             logger.exception("Failed to click got it, did it show 'next' instead of got it")
@@ -63,13 +63,13 @@ class HarriSite:
             try:
                 element = self.wait.until(EC.element_to_be_clickable((By.XPATH,Locator.oMap_icon_on_dashboard)))
                 element.click()
-                element = self.driver.find_element_by_xpath(Locator.oFirst_result_of_first_block)
+                element = self.driver.find_element('xpath',Locator.oFirst_result_of_first_block)
                 element.click()
                 logger.info("Success: Navigated to dashboard")
                 break
             except ElementClickInterceptedException:
                 logger.info("Clicked 'Got it' on the way to the Dashboard")
-                self.got_it()
+                pass
             except NoSuchElementException:
                 logger.info("waiting for dashboard page to load after Login......")
             except:
@@ -88,7 +88,7 @@ class HarriSite:
                 break
             except ElementClickInterceptedException:
                 logger.info("Clicked 'got it' on the way to clicking my team")
-                self.got_it()
+                pass
             except:
                 logger.exception("Unhandled exception while going to MyTeam")
                 raise
@@ -106,7 +106,7 @@ class HarriSite:
                 break
             except ElementClickInterceptedException:
                 logger.info("clicked 'Ignore' while going to Forecasting")
-                self.click_ignore()
+                pass
             except:
                 logger.exception("Unhandled exception Forecasting")
                 raise
@@ -122,7 +122,7 @@ class HarriSite:
                 break
             except ElementClickInterceptedException:
                 logger.info("Trying to click Ignore while going to Historical data")
-                self.click_ignore()
+                pass
             except:
                 logger.info("Unhandled exception Historical Data")
                 raise
@@ -131,7 +131,7 @@ class HarriSite:
 
     def click_ignore(self):
         try:
-            ignore_btn = self.driver.find_element_by_xpath(Locator.oIgnore_button)
+            ignore_btn = self.driver.find_element('xpath',Locator.oIgnore_button)
             ignore_btn.click()
         except NoSuchElementException:
             logger.info("Ignore Button not found, when trying to click it.")
@@ -159,7 +159,7 @@ class HarriSite:
                 break
             except ElementClickInterceptedException as e:
                 logger.info("Trying to click 'Ignore' while going to Historical Data table header")
-                self.click_ignore()
+                pass
             except StaleElementReferenceException:
                 logger.info("Stale upload historical Data exception")
             except TimeoutException:
@@ -191,8 +191,7 @@ class HarriSite:
         finally:
             pass
         if clickit:
-            element = self.wait.until(EC.element_to_be_clickable(
-                    (By.XPATH,Locator.oFirst_result_of_first_block)))
+            element = self.wait.until(EC.element_to_be_clickable((By.XPATH,Locator.oFirst_result_of_first_block)))
             element.click()
             self.wait.until(EC.invisibility_of_element_located((By.XPATH,Locator.oSpinner_brands_list)))
             if EC.visibility_of_all_elements_located((By.XPATH,Locator.oSearchbox))(self.driver):  # click on the top right search
@@ -214,7 +213,7 @@ class HarriSite:
         self.driver.implicitly_wait(1)
         while True:
             try:
-                element = self.driver.find_element_by_xpath(Locator.oUpload_button_below_brands_list)
+                element = self.driver.find_element('xpath',Locator.oUpload_button_below_brands_list)
                 element.click()
                 logger.info('Success: started upload interface')
                 break
@@ -225,7 +224,7 @@ class HarriSite:
                 logger.info("Stale element exception while clicking upload button below brands lits")    
                 self.click_uploadhistoricaldata()
             except ElementClickInterceptedException:
-                self.click_ignore()
+                pass
             finally:
                 pass
 
@@ -233,30 +232,30 @@ class HarriSite:
         logger.info(f'Attempting to browse to {fpath}')
         while True:
             try:  # click the "Browse" popup window
-                element = self.driver.find_element_by_xpath(Locator.oBrowse_button)
+                element = self.driver.find_element('xpath',Locator.oBrowse_button)
                 element.click()
                 time.sleep(2)
                 subprocess.Popen(f'''fileupload/fileupload.exe "{fpath}"''')
                 time.sleep(1)
                 break
             except ElementClickInterceptedException:
-                self.click_ignore()
+                pass
 
     def final_upload(self,upload=True):
         while True:
             try:  # click the Upload button in the popup window
                 if upload:
-                    element = self.driver.find_element_by_xpath(Locator.oUpload_button_final)
+                    element = self.driver.find_element('xpath',Locator.oUpload_button_final)
                     msx = f'File selected, clicking upload'
                 else:
-                    element = self.driver.find_element_by_xpath(Locator.oCancel_button_on_upload_modal)
+                    element = self.driver.find_element('xpath',Locator.oCancel_button_on_upload_modal)
                     msx = f'File selected, however clicking "Cancel" as we are in test mode.'
                 element.click()
                 logger.info(msx)
                 self.wait.until(EC.invisibility_of_element(element))
                 break
             except ElementClickInterceptedException:
-                self.click_ignore()
+                pass
 
 
     def status_write(self):
@@ -283,12 +282,12 @@ class HarriSite:
                     return status 
                 else:
                     logger.debug('Found the table')
-                    rows = self.driver.find_elements_by_xpath(Locator.oRows_in_status_table)
+                    rows = self.driver.find_elements('xpath',Locator.oRows_in_status_table)
                     status = self.driver.find_element(
                         By.XPATH, f"//*[@id='upload_data']/div/div/ng-transclude/upload-historical-data-component/div/div[2]/div[2]/table/tbody/tr[{len(rows)}]").get_attribute("innerText")
                     return status                    
             except:
-                logger.debug('There was an exception, probably timeout.')
+                logger.exception('There was an exception')
                 self.click_uploadhistoricaldata()
                 pass
             finally:
