@@ -165,3 +165,4 @@ logs/
 list.csv
 testing.ipynb
 previous runs/
+__pycache__
