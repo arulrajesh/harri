@@ -275,6 +275,7 @@ class HarriSite:
                     if ctr>10:
                         print(ctr)
                         status = 'Took too long'
+                        self.hsearch('') # it will go to the first result of the search and skip to the next on e if it can't get the status.
                         return status
                 elif innerT == 'No uploaded files':
                     logger.debug('could not find the table')
@@ -292,7 +293,6 @@ class HarriSite:
                 pass
             finally:
                 logger.info(status)
-                print(status)
         
     def validate_search(self):
         '''Have to definitely write a help file for this'''

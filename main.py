@@ -40,12 +40,14 @@ logger.addHandler(stream_handler)
 def pop_up_killer(driver):
     while True:
         time.sleep(1)
+        driver.implicitly_wait(0)
         for i in Locator.pops:
             try:
                 s= driver.find_element('xpath',i)
                 s.click()
             except:
                 pass
+        driver.implicitly_wait(1)
 
 @click.group()
 def cli():
