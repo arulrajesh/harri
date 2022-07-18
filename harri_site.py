@@ -301,7 +301,7 @@ class HarriSite:
         nlist = []
         search_terms = []
         uploadss= []
-        
+        self.driver.implicitly_wait(0) 
         for row in df.itertuples():
             clientid = row.historicals[:-4]
             self.hsearch(clientid, False)
