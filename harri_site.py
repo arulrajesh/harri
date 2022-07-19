@@ -14,7 +14,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
  
-formatter = logging.Formatter('%(asctime)s - %(name)11s - %(levelname)6s -%(funcName) %(message)s')
+formatter = logging.Formatter('%(asctime)s - %(name)11s - %(levelname)6s -%(funcName)s -  %(message)s')
 file_handler2 =logging.FileHandler('logs\site.log')
 file_handler2.setFormatter(formatter)
 file_handler = logging.FileHandler('logs\main.log')
