@@ -1,1 +1,1 @@
-element click intercepted: Element <li class="nav-item brand-navigation ng-scope" ng-click="openBrandsList()" automation="HeaderBrandsNavigation" ng-if="isLoggedIn &amp;&amp; user.user_employer &amp;&amp; currentPage !== 'account-suspension' &amp;&amp; (isTopLevelContext() || isHMAPUser())">...</li> is not clickable at point (1794, 35). Other element would receive the click: <div class="wt-cover cover-in" ng-class="{ 'cover-in': showAnimation }">...</div>
+It goes to a website and uploads files.
