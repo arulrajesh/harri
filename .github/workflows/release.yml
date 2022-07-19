@@ -5,6 +5,8 @@ on:
   push:
     tags:
       - "v*"
+    branches:
+      - master
 
 # Automatically create a GitHub Release, with release details specified (the relevant commits)
 jobs:
