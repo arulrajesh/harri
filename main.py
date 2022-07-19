@@ -28,7 +28,7 @@ URL ='http://harristaging.com/user/login'
 ###########################Setup Logging################################
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter('%(asctime)s - %(name)-11s - %(levelname)-6s -%(funcName)-20s - %(message)s')
 file_handler = logging.FileHandler('logs\main.log')
 file_handler.setFormatter(formatter)
 stream_handler = logging.StreamHandler()
@@ -45,6 +45,7 @@ def pop_up_killer(driver):
             try:
                 s= driver.find_element('xpath',i)
                 s.click()
+                logger.info(f'Clicked {i}')
             except:
                 pass
         driver.implicitly_wait(1)

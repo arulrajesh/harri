@@ -1,3 +1,4 @@
+from typing import Any
 import click
 from locators import Locator
 from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException, StaleElementReferenceException, TimeoutException
@@ -14,7 +15,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
  
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter('%(asctime)s - %(name)-11s - %(levelname)-6s -%(funcName)-20s -  %(message)s')
 file_handler2 =logging.FileHandler('logs\site.log')
 file_handler2.setFormatter(formatter)
 file_handler = logging.FileHandler('logs\main.log')
@@ -194,7 +195,8 @@ class HarriSite:
             element = self.wait.until(EC.element_to_be_clickable((By.XPATH,Locator.oFirst_result_of_first_block)))
             element.click()
             self.wait.until(EC.invisibility_of_element_located((By.XPATH,Locator.oSpinner_brands_list)))
-            if EC.visibility_of_all_elements_located((By.XPATH,Locator.oSearchbox))(self.driver):  # click on the top right search
+            logger.info('spinner gone')
+            if EC.visibility_of_all_elements_located((By.XPATH,Locator.oSearchbox))(self.driver):  # if after spinner vanishes and seachbox still there then click top right brand to get rid of brands list
                 element_s = self.wait.until(EC.element_to_be_clickable(
                     (By.XPATH,Locator.oTop_right_search)))
                 element_s.click()
@@ -230,46 +232,40 @@ class HarriSite:
 
     def hbrowse(self,fpath):
         logger.info(f'Attempting to browse to {fpath}')
-        while True:
-            try:  # click the "Browse" popup window
-                element = self.driver.find_element('xpath',Locator.oBrowse_button)
-                element.click()
-                time.sleep(2)
-                subprocess.Popen(f'''fileupload/fileupload.exe "{fpath}"''')
-                time.sleep(1)
-                break
-            except ElementClickInterceptedException:
-                pass
-
+        
+        element = self.driver.find_element('xpath',Locator.oFbox)
+        element.send_keys(fpath)
+        
     def final_upload(self,upload=True):
-        while True:
-            try:  # click the Upload button in the popup window
-                if upload:
-                    element = self.driver.find_element('xpath',Locator.oUpload_button_final)
-                    msx = f'File selected, clicking upload'
-                else:
-                    element = self.driver.find_element('xpath',Locator.oCancel_button_on_upload_modal)
-                    msx = f'File selected, however clicking "Cancel" as we are in test mode.'
-                element.click()
-                logger.info(msx)
-                self.wait.until(EC.invisibility_of_element(element))
-                break
-            except ElementClickInterceptedException:
-                pass
+        try:  # click the Upload button in the popup window
+            if upload:
+                element = self.driver.find_element('xpath',Locator.oUpload_button_final)
+                msx = f'File selected, clicked upload'
+            else:
+                element = self.driver.find_element('xpath',Locator.oCancel_button_on_upload_modal)
+                msx = f'File selected, however clicking "Cancel" as we are in test mode.'
+            element.click()
+            logger.info(msx)
+            #self.wait.until(EC.invisibility_of_element(element))
+            logger.debug('waiting for loading box to show up or upload header to vanish and refresh')
+            WebDriverWait(self.driver,10).until(AnyEc(EC.invisibility_of_element_located((By.XPATH,Locator.oUpload_historical_data_table_title)), EC.visibility_of_element_located((By.XPATH,Locator.oLoadingtable))))    
+        except:
+            logger.exception('Error while waiting for status to load')
 
 
     def status_write(self):
         status = "NA"
-        ctr=1
+        ctr=0
         self.driver.implicitly_wait(1)
         while True:
-            logger.info(f'attempt:{ctr}')        
             try:  # Locate the presence of the table after upload and find the status in the last row
                 # //*[@id="upload_data"]/div/div/ng-transclude/upload-historical-data-component/div/div[2]/div[2]/table
-                logger.debug('waiting for upload table to show up')
                 ctr+=1
-                result = WebDriverWait(self.driver,3).until(AnyEc(EC.visibility_of_element_located((By.XPATH, Locator.oStatus_table)), EC.visibility_of_element_located(
-                (By.XPATH, Locator.oNo_uploaded_files)),EC.element_to_be_clickable((By.XPATH,Locator.oLoadingtable))))
+                logger.info(f'Attempting to get status, attempt:{ctr}')
+                result = WebDriverWait(self.driver,3).until(AnyEc(EC.visibility_of_element_located((By.XPATH, Locator.oStatus_table)), 
+                        EC.visibility_of_element_located((By.XPATH, Locator.oNo_uploaded_files)), 
+                        EC.element_to_be_clickable((By.XPATH,Locator.oLoadingtable))
+                        ))
                 innerT = result.get_attribute('innerText') 
                 if 'Loading' in innerT:
                     if ctr>10:
