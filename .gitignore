@@ -168,3 +168,4 @@ previous runs/
 __pycache__
 output.csv
 asdfa
+.vscode/
