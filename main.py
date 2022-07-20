@@ -116,7 +116,7 @@ def createlist(nogui):
         FiHa.validate_search()
         driver.close()
     except:
-        logger.exception("There was an unexpected error please contact the developer")
+        logger.exception("There was an unexpected error please contact the developer.")
         driver.close()
         raise
 
@@ -160,7 +160,6 @@ def upload(nogui):
             if upload:
                 FiHa.click_uploadhistoricaldata()
                 FiHa.hsearch(clientid)
-                print(f'"{fname}"        {clientid}')
                 FiHa.click_uploadhistoricaldata()
                 FiHa.click_upload()
                 FiHa.hbrowse(fname)
@@ -175,7 +174,7 @@ def upload(nogui):
         df2[['date','uploadedby','filename','status']]=df3['stat'].str.split('\t',expand=True)
         df2.to_csv('output.csv', index=False)
     except:
-        logger.exception("There was unexpected error. Please contact the developer")
+        logger.exception("There was unexpected error. Please contact the developer.")
         driver.close()
         raise
 

@@ -254,7 +254,7 @@ class HarriSite:
 
 
     def status_write(self):
-        status = "NA"
+        status = "\t\t\tNA"
         ctr=0
         self.driver.implicitly_wait(1)
         while True:
@@ -270,12 +270,12 @@ class HarriSite:
                 if 'Loading' in innerT:
                     if ctr>10:
                         print(ctr)
-                        status = 'Took too long'
+                        status = '\t\t\tTook too long'
                         self.hsearch('') # it will go to the first result of the search and skip to the next on e if it can't get the status.
                         return status
                 elif innerT == 'No uploaded files':
                     logger.debug('could not find the table')
-                    status = 'No Uploaded Files'
+                    status = '\t\t\tNo Uploaded Files'
                     return status 
                 else:
                     logger.debug('Found the table')
