@@ -1,15 +1,13 @@
 from typing import Any
-import click
 from locators import Locator
 from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException, StaleElementReferenceException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 import os
-import subprocess
 import pandas as pd
-import time
 import logging
+from datetime import datetime
 
 ###########################Setup Logging################################
 logger = logging.getLogger(__name__)
@@ -254,7 +252,7 @@ class HarriSite:
 
 
     def status_write(self):
-        status = "NA"
+        status = f'{datetime.now().strftime("%b %d, %Y %H:%M:%S")}\t\t\tNA'
         ctr=0
         self.driver.implicitly_wait(1)
         while True:
@@ -270,12 +268,12 @@ class HarriSite:
                 if 'Loading' in innerT:
                     if ctr>10:
                         print(ctr)
-                        status = 'Took too long'
+                        status = f'{datetime.now().strftime("%b %d, %Y %H:%M:%S")}\t\t\tTook too long'
                         self.hsearch('') # it will go to the first result of the search and skip to the next on e if it can't get the status.
                         return status
                 elif innerT == 'No uploaded files':
                     logger.debug('could not find the table')
-                    status = 'No Uploaded Files'
+                    status = f'{datetime.now().strftime("%b %d, %Y %H:%M:%S")}\t\t\tNo Uploaded Files'
                     return status 
                 else:
                     logger.debug('Found the table')
@@ -329,8 +327,13 @@ class HarriSite:
         df['clientid'] = search_terms
         df['upload'] = uploadss
         df.sort_values(by=['upload','#results'], inplace=True)
-        df.to_csv('list.csv', index=False)
-        logger.info('Successfully exported "list.csv" file. Please check file for any ZZZZZZs. Correct and set upload to 1.')
+        while True:
+            try:
+                df.to_csv('list.csv', index=False)
+                logger.info('Successfully exported "list.csv" file. Please check file for any ZZZZZZs. Correct and set upload to 1.')
+                break
+            except PermissionError:
+                input("Could not save 'list.csv' file! Please close the file and Press Enter to retry:\n>>")
 
     # make sure you are on the dashboard page
     def get_list_of_sites(self):

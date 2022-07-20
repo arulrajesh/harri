@@ -1,3 +1,4 @@
+from ast import While
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -11,11 +12,15 @@ from selenium.webdriver.chrome.options import Options
 import threading
 import time
 from locators import Locator
+from datetime import datetime
 options=Options()
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
+
+
+
 ###################################################
-U='STAGING_Grant.Read@demipower.com'
-#U='STAGING_PMOlead@colleygroup.com'
+#U='STAGING_Grant.Read@demipower.com'
+U='STAGING_PMOlead@colleygroup.com'
 #U='STAGING_Jmharri@harri.com'
 P='House123!'
 URL ='http://harristaging.com/user/login'
@@ -55,42 +60,72 @@ def cli():
     pass
 
 @click.command()
-@click.option("--user", type =click.Tuple([str,str]), help = "Username Password to login")
-def createlist(user):
+@click.option("-n","--nogui", default = False, help = "Set to True to hide the browser.")
+def createlist(nogui):
     """
-    This Generates a list file that will need to be validated by opening in excel to check if
-    there are any Files that were not located in the Brands list.
-    
-    For this to generate the list.csv file. Place all the files that need to be uploaded to harri
+    \b
+    This generates a 'list.csv' file based on the files present in the historicals folder.
+    The program logs into the harri URL provided, goes to the dashboard page and searches
+    for each filename, trying to search the exact location. If doesn't find a unique match with 
+    the file name, the program breaks up the filename by space and searches each portion till 
+    it finds a unique match. 
+        e.g., If there is a file named "bury-road.csv" in the historicals folder, 
+        it will first search for "Ipswich bury-road". If there are no matches it 
+        will next search for "Ipswich", then for "bury-road" until it finds a 
+        unique match in the locations list.
+    \b
+    The 'list.csv' file will have five folowing columns:
+    historicals: The list of file names in the historicals folder.
+    companies  : The list of matches if found in the harri URL.
+    #results   : 1 if the file name returns a match as is, 0 if no 
+                match is found with just file name.
+    clientid   : The search term that resulted in a unique match.
+    upload     : 1 if the csv file is to be uploaded. 0 if you want
+                 to skip uploading the csv file.
+    \b
+    You will have to validate the list.csv before you run the next step.
+        1. Check if there are any "clientid" that are ZZZZZZZZZZZZ. These are the files that did not
+            return any matches in the location.
+        2. You will have to manually update the 'clientid' to a phrase that uniquely 
+            identifies the location     e.g., in the above "Ipswich bury-road" example.
+            This would be "bury road", notice how the hyphen was replaced with a space.
+        3. Change the 'upload' column to 1.
+    \b
+    Tips:
+        For this to generate the list.csv file. Place all the files that need to be uploaded to harri
     in the "Historicals" folder. Make sure the Name of each file is similar to the one in brand list.
-
-    Once finished, look for list.csv in the same folder from where this code was run.
-    Open it in excel and you should check for any problems csv files and fix them.
-
     """
-    driver = webdriver.Chrome(executable_path='chromedriver\chromedriver.exe',options=options)
-    driver.maximize_window()
-    driver.get(URL)
-    wait = WebDriverWait(driver, 60)
-    driver.implicitly_wait(1)
-    x = threading.Thread(target=pop_up_killer,args=(driver,),daemon=True)
-    x.start()
-    FiHa = HarriSite(wait,driver)
-    #u ,p = user
-    u  = U
-    p = P
-    FiHa.harri_login(u, p)
-    FiHa.goto_dashboard()
-    FiHa.goto_myteam()
-    FiHa.goto_forecasting()
-    FiHa.goto_historicaldata()
-    FiHa.validate_search()
-
+    try:
+        if nogui: 
+            options.headless = True
+        
+        driver = webdriver.Chrome(executable_path='chromedriver\chromedriver.exe',options=options)
+        driver.maximize_window()
+        driver.get(URL)
+        wait = WebDriverWait(driver, 60)
+        driver.implicitly_wait(1)
+        x = threading.Thread(target=pop_up_killer,args=(driver,),daemon=True)
+        x.start()
+        FiHa = HarriSite(wait,driver)
+        #u ,p = user
+        u  = U
+        p = P
+        FiHa.harri_login(u, p)
+        FiHa.goto_dashboard()
+        FiHa.goto_myteam()
+        FiHa.goto_forecasting()
+        FiHa.goto_historicaldata()
+        FiHa.validate_search()
+        driver.close()
+    except:
+        logger.exception("There was an unexpected error please contact the developer.")
+        driver.close()
+        raise
 
 
 @click.command()
-@click.option("--user", type =click.Tuple([str,str]), help = "Username Password to login")
-def upload(user):
+@click.option("-n","--nogui", default = False, help = "Set to True to hide the browser.")
+def upload(nogui):
     """
     This program is supposed to be run after the list.csv file is generated.
     If there are no locations that have a clientID or search term as "ZZZZZZZZZ"
@@ -100,45 +135,58 @@ def upload(user):
     This program will search for the "clientID" field in the list.csv file in the brands list.
     then it will upload the corresponding csv file as named in the "historicals" feild.
     """
-    driver = webdriver.Chrome(executable_path='chromedriver\chromedriver.exe',options=options)
-    driver.maximize_window()
-    driver.get(URL)
-    wait = WebDriverWait(driver, 60)
-    driver.implicitly_wait(1)
-    x = threading.Thread(target=pop_up_killer,args=(driver,),daemon=True)
-    x.start()
-    FiHa = HarriSite(wait,driver)
-    #u ,p = user
-    u  = U
-    p = P
-    FiHa.harri_login(u, p)
-    FiHa.goto_dashboard()
-    FiHa.goto_myteam()
-    FiHa.goto_forecasting()
-    FiHa.goto_historicaldata()
-    df = pd.read_csv("list.csv")
-    df2 = df.copy()
-    statuss = []
-    for row in df.itertuples():
-        clientid, fname,upload = row.clientid, f"{os.getcwd()}\historicals\{row.historicals}",row.upload
-        if upload:
-            FiHa.click_uploadhistoricaldata()
-            FiHa.hsearch(clientid)
-            print(f'"{fname}"        {clientid}')
-            FiHa.click_uploadhistoricaldata()
-            FiHa.click_upload()
-            FiHa.hbrowse(fname)
-            FiHa.final_upload()
-            fial_sta =FiHa.status_write()
-            statuss.append(fial_sta)
-            logger.info(fial_sta)
-        else:
-            statuss.append('Did not attempt')
-    df3 = pd.DataFrame(statuss,columns=['stat'])
-    df2[['date','uploadedby','filename','status']]=df3['stat'].str.split('\t',expand=True)
-
-    df2.to_csv('output.csv', index=False)
-
+    try:
+        df = pd.read_csv("list.csv")
+        df2 = df.copy()
+        statuss = []
+        if nogui:
+            options.headless = True
+        driver = webdriver.Chrome(executable_path='chromedriver\chromedriver.exe',options=options)
+        if 1 in df['upload'].values:
+            driver.maximize_window()
+            driver.get(URL)
+            wait = WebDriverWait(driver, 60)
+            driver.implicitly_wait(1)
+            x = threading.Thread(target=pop_up_killer,args=(driver,),daemon=True)
+            x.start()
+            FiHa = HarriSite(wait,driver)
+            #u ,p = user
+            u  = U
+            p = P
+            FiHa.harri_login(u, p)
+            FiHa.goto_dashboard()
+            FiHa.goto_myteam()
+            FiHa.goto_forecasting()
+            FiHa.goto_historicaldata()
+        for row in df.itertuples():
+            clientid, fname,upload = row.clientid, f"{os.getcwd()}\historicals\{row.historicals}",row.upload
+            if upload:
+                FiHa.click_uploadhistoricaldata()
+                FiHa.hsearch(clientid)
+                FiHa.click_uploadhistoricaldata()
+                FiHa.click_upload()
+                FiHa.hbrowse(fname)
+                FiHa.final_upload()
+                fial_sta =FiHa.status_write()
+                statuss.append(fial_sta)
+                logger.info(fial_sta)
+            else:
+                statuss.append(f'{datetime.now().strftime("%b %d, %Y %H:%M:%S")}\t\t\tDid not attempt')
+            
+        df3 = pd.DataFrame(statuss,columns=['stat'])
+        df2[['date','uploadedby','filename','status']]=df3['stat'].str.split('\t',expand=True)
+        while True:
+            try:
+                df2.to_csv('output.csv', index=False)
+                logger.info(f'"output.csv" saved. PLease check status column')
+                break
+            except PermissionError:
+                input("Could not save output.csv file! Please close the file & Press Enter to retry:\n>>")
+        driver.close()
+    except:
+        logger.exception("There was unexpected error. Please contact the developer.")
+        driver.close()
+        raise
 
 
 @click.command()
