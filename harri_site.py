@@ -333,7 +333,7 @@ class HarriSite:
                 logger.info('Successfully exported "list.csv" file. Please check file for any ZZZZZZs. Correct and set upload to 1.')
                 break
             except PermissionError:
-                input("Could not save 'list.csv' file! Please close the file. Press Enter to retry.\n>>")
+                input("Could not save 'list.csv' file! Please close the file and Press Enter to retry:\n>>")
 
     # make sure you are on the dashboard page
     def get_list_of_sites(self):
