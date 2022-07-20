@@ -93,27 +93,32 @@ def createlist(nogui):
         For this to generate the list.csv file. Place all the files that need to be uploaded to harri
     in the "Historicals" folder. Make sure the Name of each file is similar to the one in brand list.
     """
-    if nogui: 
-        options.headless = True
-    
-    driver = webdriver.Chrome(executable_path='chromedriver\chromedriver.exe',options=options)
-    driver.maximize_window()
-    driver.get(URL)
-    wait = WebDriverWait(driver, 60)
-    driver.implicitly_wait(1)
-    x = threading.Thread(target=pop_up_killer,args=(driver,),daemon=True)
-    x.start()
-    FiHa = HarriSite(wait,driver)
-    #u ,p = user
-    u  = U
-    p = P
-    FiHa.harri_login(u, p)
-    FiHa.goto_dashboard()
-    FiHa.goto_myteam()
-    FiHa.goto_forecasting()
-    FiHa.goto_historicaldata()
-    FiHa.validate_search()
-
+    try:
+        if nogui: 
+            options.headless = True
+        
+        driver = webdriver.Chrome(executable_path='chromedriver\chromedriver.exe',options=options)
+        driver.maximize_window()
+        driver.get(URL)
+        wait = WebDriverWait(driver, 60)
+        driver.implicitly_wait(1)
+        x = threading.Thread(target=pop_up_killer,args=(driver,),daemon=True)
+        x.start()
+        FiHa = HarriSite(wait,driver)
+        #u ,p = user
+        u  = U
+        p = P
+        FiHa.harri_login(u, p)
+        FiHa.goto_dashboard()
+        FiHa.goto_myteam()
+        FiHa.goto_forecasting()
+        FiHa.goto_historicaldata()
+        FiHa.validate_search()
+        driver.close()
+    except:
+        logger.exception("There was an unexpected error please contact the developer")
+        driver.close()
+        raise
 
 
 @click.command()
@@ -128,47 +133,51 @@ def upload(nogui):
     This program will search for the "clientID" field in the list.csv file in the brands list.
     then it will upload the corresponding csv file as named in the "historicals" feild.
     """
-    if nogui:
-        options.headless = True
-    driver = webdriver.Chrome(executable_path='chromedriver\chromedriver.exe',options=options)
-    driver.maximize_window()
-    driver.get(URL)
-    wait = WebDriverWait(driver, 60)
-    driver.implicitly_wait(1)
-    x = threading.Thread(target=pop_up_killer,args=(driver,),daemon=True)
-    x.start()
-    FiHa = HarriSite(wait,driver)
-    #u ,p = user
-    u  = U
-    p = P
-    FiHa.harri_login(u, p)
-    FiHa.goto_dashboard()
-    FiHa.goto_myteam()
-    FiHa.goto_forecasting()
-    FiHa.goto_historicaldata()
-    df = pd.read_csv("list.csv")
-    df2 = df.copy()
-    statuss = []
-    for row in df.itertuples():
-        clientid, fname,upload = row.clientid, f"{os.getcwd()}\historicals\{row.historicals}",row.upload
-        if upload:
-            FiHa.click_uploadhistoricaldata()
-            FiHa.hsearch(clientid)
-            print(f'"{fname}"        {clientid}')
-            FiHa.click_uploadhistoricaldata()
-            FiHa.click_upload()
-            FiHa.hbrowse(fname)
-            FiHa.final_upload()
-            fial_sta =FiHa.status_write()
-            statuss.append(fial_sta)
-            logger.info(fial_sta)
-        else:
-            statuss.append('Did not attempt')
-    driver.close()    
-    df3 = pd.DataFrame(statuss,columns=['stat'])
-    df2[['date','uploadedby','filename','status']]=df3['stat'].str.split('\t',expand=True)
-    df2.to_csv('output.csv', index=False)
-
+    try:
+        if nogui:
+            options.headless = True
+        driver = webdriver.Chrome(executable_path='chromedriver\chromedriver.exe',options=options)
+        driver.maximize_window()
+        driver.get(URL)
+        wait = WebDriverWait(driver, 60)
+        driver.implicitly_wait(1)
+        x = threading.Thread(target=pop_up_killer,args=(driver,),daemon=True)
+        x.start()
+        FiHa = HarriSite(wait,driver)
+        #u ,p = user
+        u  = U
+        p = P
+        FiHa.harri_login(u, p)
+        FiHa.goto_dashboard()
+        FiHa.goto_myteam()
+        FiHa.goto_forecasting()
+        FiHa.goto_historicaldata()
+        df = pd.read_csv("list.csv")
+        df2 = df.copy()
+        statuss = []
+        for row in df.itertuples():
+            clientid, fname,upload = row.clientid, f"{os.getcwd()}\historicals\{row.historicals}",row.upload
+            if upload:
+                FiHa.click_uploadhistoricaldata()
+                FiHa.hsearch(clientid)
+                print(f'"{fname}"        {clientid}')
+                FiHa.click_uploadhistoricaldata()
+                FiHa.click_upload()
+                FiHa.hbrowse(fname)
+                FiHa.final_upload()
+                fial_sta =FiHa.status_write()
+                statuss.append(fial_sta)
+                logger.info(fial_sta)
+            else:
+                statuss.append('Did not attempt')
+        driver.close()    
+        df3 = pd.DataFrame(statuss,columns=['stat'])
+        df2[['date','uploadedby','filename','status']]=df3['stat'].str.split('\t',expand=True)
+        df2.to_csv('output.csv', index=False)
+    except:
+        logger.exception("There was unexpected error. Please contact the developer")
+        driver.close()
+        raise
 
 
 @click.command()
