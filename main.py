@@ -14,9 +14,9 @@ from locators import Locator
 options=Options()
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
 ###################################################
-U='STAGING_Grant.Read@demipower.com'
+#U='STAGING_Grant.Read@demipower.com'
 #U='STAGING_PMOlead@colleygroup.com'
-#U='STAGING_Jmharri@harri.com'
+U='STAGING_Jmharri@harri.com'
 P='House123!'
 URL ='http://harristaging.com/user/login'
 ###################################################
@@ -55,19 +55,44 @@ def cli():
     pass
 
 @click.command()
-@click.option("--user", type =click.Tuple([str,str]), help = "Username Password to login")
-def createlist(user):
+@click.option("-n","--nogui", default = False, help = "Set to True to hide the browser.")
+def createlist(nogui):
     """
-    This Generates a list file that will need to be validated by opening in excel to check if
-    there are any Files that were not located in the Brands list.
-    
-    For this to generate the list.csv file. Place all the files that need to be uploaded to harri
+    \b
+    This generates a 'list.csv' file based on the files present in the historicals folder.
+    The program logs into the harri URL provided, goes to the dashboard page and searches
+    for each filename, trying to search the exact location. If doesn't find a unique match with 
+    the file name, the program breaks up the filename by space and searches each portion till 
+    it finds a unique match. 
+        e.g., If there is a file named "bury-road.csv" in the historicals folder, 
+        it will first search for "Ipswich bury-road". If there are no matches it 
+        will next search for "Ipswich", then for "bury-road" until it finds a 
+        unique match in the locations list.
+    \b
+    The 'list.csv' file will have five folowing columns:
+    historicals: The list of file names in the historicals folder.
+    companies  : The list of matches if found in the harri URL.
+    #results   : 1 if the file name returns a match as is, 0 if no 
+                match is found with just file name.
+    clientid   : The search term that resulted in a unique match.
+    upload     : 1 if the csv file is to be uploaded. 0 if you want
+                 to skip uploading the csv file.
+    \b
+    You will have to validate the list.csv before you run the next step.
+        1. Check if there are any "clientid" that are ZZZZZZZZZZZZ. These are the files that did not
+            return any matches in the location.
+        2. You will have to manually update the 'clientid' to a phrase that uniquely 
+            identifies the location     e.g., in the above "Ipswich bury-road" example.
+            This would be "bury road", notice how the hyphen was replaced with a space.
+        3. Change the 'upload' column to 1.
+    \b
+    Tips:
+        For this to generate the list.csv file. Place all the files that need to be uploaded to harri
     in the "Historicals" folder. Make sure the Name of each file is similar to the one in brand list.
-
-    Once finished, look for list.csv in the same folder from where this code was run.
-    Open it in excel and you should check for any problems csv files and fix them.
-
     """
+    if nogui: 
+        options.headless = True
+    
     driver = webdriver.Chrome(executable_path='chromedriver\chromedriver.exe',options=options)
     driver.maximize_window()
     driver.get(URL)
