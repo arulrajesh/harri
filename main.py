@@ -114,8 +114,8 @@ def createlist(nogui):
 
 
 @click.command()
-@click.option("--user", type =click.Tuple([str,str]), help = "Username Password to login")
-def upload(user):
+@click.option("-n","--nogui", default = False, help = "Set to True to hide the browser.")
+def upload(nogui):
     """
     This program is supposed to be run after the list.csv file is generated.
     If there are no locations that have a clientID or search term as "ZZZZZZZZZ"
@@ -125,6 +125,8 @@ def upload(user):
     This program will search for the "clientID" field in the list.csv file in the brands list.
     then it will upload the corresponding csv file as named in the "historicals" feild.
     """
+    if nogui:
+        options.headless = True
     driver = webdriver.Chrome(executable_path='chromedriver\chromedriver.exe',options=options)
     driver.maximize_window()
     driver.get(URL)
