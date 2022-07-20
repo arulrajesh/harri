@@ -1,14 +1,11 @@
 from typing import Any
-import click
 from locators import Locator
 from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException, StaleElementReferenceException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 import os
-import subprocess
 import pandas as pd
-import time
 import logging
 from datetime import datetime
 
@@ -330,8 +327,13 @@ class HarriSite:
         df['clientid'] = search_terms
         df['upload'] = uploadss
         df.sort_values(by=['upload','#results'], inplace=True)
-        df.to_csv('list.csv', index=False)
-        logger.info('Successfully exported "list.csv" file. Please check file for any ZZZZZZs. Correct and set upload to 1.')
+        while True:
+            try:
+                df.to_csv('list.csv', index=False)
+                logger.info('Successfully exported "list.csv" file. Please check file for any ZZZZZZs. Correct and set upload to 1.')
+                break
+            except PermissionError:
+                input("Could not save 'list.csv' file! Please close the file. Press Enter to retry.\n>>")
 
     # make sure you are on the dashboard page
     def get_list_of_sites(self):

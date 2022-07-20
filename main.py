@@ -1,3 +1,4 @@
+from ast import While
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -11,7 +12,7 @@ from selenium.webdriver.chrome.options import Options
 import threading
 import time
 from locators import Locator
-from  datetime import datetime
+from datetime import datetime
 options=Options()
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
@@ -135,27 +136,28 @@ def upload(nogui):
     then it will upload the corresponding csv file as named in the "historicals" feild.
     """
     try:
-        if nogui:
-            options.headless = True
-        driver = webdriver.Chrome(executable_path='chromedriver\chromedriver.exe',options=options)
-        driver.maximize_window()
-        driver.get(URL)
-        wait = WebDriverWait(driver, 60)
-        driver.implicitly_wait(1)
-        x = threading.Thread(target=pop_up_killer,args=(driver,),daemon=True)
-        x.start()
-        FiHa = HarriSite(wait,driver)
-        #u ,p = user
-        u  = U
-        p = P
-        FiHa.harri_login(u, p)
-        FiHa.goto_dashboard()
-        FiHa.goto_myteam()
-        FiHa.goto_forecasting()
-        FiHa.goto_historicaldata()
         df = pd.read_csv("list.csv")
         df2 = df.copy()
         statuss = []
+        if nogui:
+            options.headless = True
+        driver = webdriver.Chrome(executable_path='chromedriver\chromedriver.exe',options=options)
+        if 1 in df['upload'].values:
+            driver.maximize_window()
+            driver.get(URL)
+            wait = WebDriverWait(driver, 60)
+            driver.implicitly_wait(1)
+            x = threading.Thread(target=pop_up_killer,args=(driver,),daemon=True)
+            x.start()
+            FiHa = HarriSite(wait,driver)
+            #u ,p = user
+            u  = U
+            p = P
+            FiHa.harri_login(u, p)
+            FiHa.goto_dashboard()
+            FiHa.goto_myteam()
+            FiHa.goto_forecasting()
+            FiHa.goto_historicaldata()
         for row in df.itertuples():
             clientid, fname,upload = row.clientid, f"{os.getcwd()}\historicals\{row.historicals}",row.upload
             if upload:
@@ -170,10 +172,17 @@ def upload(nogui):
                 logger.info(fial_sta)
             else:
                 statuss.append(f'{datetime.now().strftime("%b %d, %Y %H:%M:%S")}\t\t\tDid not attempt')
-        #driver.close()    
+            
         df3 = pd.DataFrame(statuss,columns=['stat'])
         df2[['date','uploadedby','filename','status']]=df3['stat'].str.split('\t',expand=True)
-        df2.to_csv('output.csv', index=False)
+        while True:
+            try:
+                df2.to_csv('output.csv', index=False)
+                logger.info(f'"output.csv" saved. PLease check status column')
+                break
+            except PermissionError:
+                input("Could not save output.csv file! Please close the file & Press Enter to retry:\n>>")
+        driver.close()
     except:
         logger.exception("There was unexpected error. Please contact the developer.")
         driver.close()
