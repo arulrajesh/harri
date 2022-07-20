@@ -161,9 +161,9 @@ def upload(nogui):
             logger.info(fial_sta)
         else:
             statuss.append('Did not attempt')
+    driver.close()    
     df3 = pd.DataFrame(statuss,columns=['stat'])
     df2[['date','uploadedby','filename','status']]=df3['stat'].str.split('\t',expand=True)
-
     df2.to_csv('output.csv', index=False)
 
 
