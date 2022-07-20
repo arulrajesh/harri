@@ -11,6 +11,7 @@ from selenium.webdriver.chrome.options import Options
 import threading
 import time
 from locators import Locator
+from  datetime import datetime
 options=Options()
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
@@ -168,8 +169,8 @@ def upload(nogui):
                 statuss.append(fial_sta)
                 logger.info(fial_sta)
             else:
-                statuss.append('Did not attempt')
-        driver.close()    
+                statuss.append(f'{datetime.now().strftime("%b %d, %Y %H:%M:%S")}\t\t\tDid not attempt')
+        #driver.close()    
         df3 = pd.DataFrame(statuss,columns=['stat'])
         df2[['date','uploadedby','filename','status']]=df3['stat'].str.split('\t',expand=True)
         df2.to_csv('output.csv', index=False)
