@@ -8,7 +8,8 @@ class Locator:
     #The 
     oMap_icon_on_dashboard = "//li[contains(@class,'brand-navigation')]"
     oFirst_result_of_first_block ="(//div[contains(@class,'locations-list-wrapper')][2]//div[contains(@class,'brand-item')])[1]"
-    oMy_team_header = "//*[@id='header-links-nav']//a[contains(.,'My Team')]"
+    #oMy_team_header = "//*[@id='header-links-nav']//a[contains(.,'My Team')]"
+    oMy_team_header = "//a[contains(@automation,'TTSMyTeam')]"
     oForecasting = "//*[@id='header-links-nav']//li[contains(.,'Forecasting')]/div/button"
     oHistorical_data_menu_item = "//*[@id='header-links-nav']//a[contains(.,'Historical Data')]"
     oUpload_modal_title = "//*[@id='manage-template-modal']/div/div/div[1]/h4/span"
