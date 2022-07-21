@@ -15,19 +15,14 @@ from locators import Locator
 from datetime import datetime
 options=Options()
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
-
+import cred
 
 
 ###################################################
-#U='STAGING_Grant.Read@demipower.com'
-U='STAGING_PMOlead@colleygroup.com'
-#U='STAGING_Jmharri@harri.com'
-P='House123!'
-URL ='http://harristaging.com/user/login'
+U = cred.U
+P = cred.P
+URL = cred.LoginURL
 ###################################################
-
-
-
 
 
 ###########################Setup Logging################################

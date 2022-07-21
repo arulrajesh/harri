@@ -160,12 +160,11 @@ cython_debug/
 #.idea/
 historicals/
 archive/
-harri/
 logs/
 list.csv
 testing.ipynb
 previous runs/
 __pycache__
 output.csv
-asdfa
 .vscode/
+cred.py

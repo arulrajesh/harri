@@ -176,13 +176,16 @@ class HarriSite:
             element_s.click()
         finally:
             pass
-
-        try:  # click on the top right search
-            element_s = self.wait.until(EC.element_to_be_clickable(
-                (By.XPATH,Locator.oTop_right_search)))
-            element_s.click()
-        finally:
-            pass
+            self.driver.implicitly_wait(0)
+        
+        while True:
+            try:
+                _ = self.driver.find_element('xpath',Locator.oSearchbox)    
+                self.driver.implicitly_wait(1)
+                break
+            except:
+                logger.debug('click top right search')
+                self.driver.find_element('xpath',Locator.oTop_right_search).click()
         try:  # search for the site
             element = self.wait.until(EC.element_to_be_clickable(
                 (By.XPATH,Locator.oSearchbox)))
