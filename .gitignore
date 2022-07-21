@@ -167,3 +167,4 @@ previous runs/
 __pycache__
 output.csv
 .vscode/
+cred.py
