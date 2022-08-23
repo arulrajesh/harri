@@ -1,4 +1,3 @@
-from ast import While
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -13,6 +12,8 @@ import threading
 import time
 from locators import Locator
 from datetime import datetime
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 options=Options()
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
 import cred
@@ -94,7 +95,7 @@ def createlist(nogui):
         if nogui: 
             options.headless = True
         
-        driver = webdriver.Chrome(executable_path='chromedriver\chromedriver.exe',options=options)
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()),options=options) #driver = webdriver.Chrome(executable_path='chromedriver\chromedriver.exe',options=options)
         driver.maximize_window()
         driver.get(URL)
         wait = WebDriverWait(driver, 60)
@@ -136,7 +137,7 @@ def upload(nogui):
         statuss = []
         if nogui:
             options.headless = True
-        driver = webdriver.Chrome(executable_path='chromedriver\chromedriver.exe',options=options)
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()),options=options) #webdriver.Chrome(executable_path='chromedriver\chromedriver.exe',options=options)
         if 1 in df['upload'].values:
             driver.maximize_window()
             driver.get(URL)

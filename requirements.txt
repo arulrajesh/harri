@@ -1,3 +1,4 @@
 pandas
 selenium
 click
+webdriver_manager
